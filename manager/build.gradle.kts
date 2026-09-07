@@ -3,19 +3,6 @@ plugins {
     alias(libs.plugins.agp.lib) apply false
     alias(libs.plugins.kotlin) apply false
     alias(libs.plugins.compose.compiler) apply false
-    alias(libs.plugins.lsplugin.cmaker)
-}
-
-cmaker {
-    default {
-        arguments.addAll(arrayOf("-DANDROID_STL=none"))
-        abiFilters("arm64-v8a", "x86_64")
-    }
-    buildTypes {
-        if (it.name == "release") {
-            arguments += "-DDEBUG_SYMBOLS_PATH=${layout.buildDirectory.asFile.get().absolutePath}/symbols"
-        }
-    }
 }
 
 extra["androidMinSdkVersion"] = 26
