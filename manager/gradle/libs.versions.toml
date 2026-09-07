@@ -21,6 +21,7 @@ cmaker = "1.2"
 haze = "1.7.1"
 capsule = "2.1.1"
 mmrl = "v33953"
+miuix = "0.9.3"
 
 [plugins]
 agp-app = { id = "com.android.application", version.ref = "agp" }
@@ -78,3 +79,7 @@ markdown = { group = "io.noties.markwon", name = "core", version.ref = "markdown
 lsposed-cxx = { module = "org.lsposed.libcxx:libcxx", version = "28.1.13356709" }
 
 mmrl-ui = { group = "com.github.MMRLApp.MMRL", name = "ui", version.ref = "mmrl" }
+
+miuix-ui = { module = "top.yukonga.miuix.kmp:miuix-ui-android", version.ref = "miuix" }
+miuix-icons = { module = "top.yukonga.miuix.kmp:miuix-icons-android", version.ref = "miuix" }
+miuix-blur = { module = "top.yukonga.miuix.kmp:miuix-blur-android", version.ref = "miuix" }
