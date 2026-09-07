@@ -2,9 +2,10 @@ name: Build Manager CI
 
 on:
   push:
-    branches: [ "dev" ]
+    branches: [ "dev", "miuix-manager" ]
     paths:
       - '.github/workflows/build-manager.yml'
+      - '.github/workflows/build-manager-ci.yml'
       - '.github/workflows/build-lkm.yml'
       - '.github/workflows/ksud.yml'
       - 'manager/**'
@@ -14,6 +15,7 @@ on:
     branches: [ "dev" ]
     paths:
       - '.github/workflows/build-manager.yml'
+      - '.github/workflows/build-manager-ci.yml'
       - '.github/workflows/build-lkm.yml'
       - '.github/workflows/ksud.yml'
       - 'manager/**'
@@ -49,15 +51,15 @@ jobs:
     strategy:
       matrix:
         include:
-          - target: x86_64-pc-windows-gnu # windows pc
+          - target: x86_64-pc-windows-gnu
             os: ubuntu-latest
-          - target: x86_64-apple-darwin # Intel mac
+          - target: x86_64-apple-darwin
             os: macos-latest
-          - target: aarch64-apple-darwin # M chip mac
+          - target: aarch64-apple-darwin
             os: macos-latest
-          - target: aarch64-unknown-linux-musl # arm64 Linux
+          - target: aarch64-unknown-linux-musl
             os: ubuntu-latest
-          - target: x86_64-unknown-linux-musl # x86 Linux
+          - target: x86_64-unknown-linux-musl
             os: ubuntu-latest
     uses: ./.github/workflows/ksud.yml
     with:
@@ -144,14 +146,14 @@ jobs:
 
       - name: Upload build artifact
         uses: actions/upload-artifact@v7
-        if: ${{ ( github.event_name != 'pull_request' && (github.ref == 'refs/heads/dev' )) || github.ref_type == 'tag' }}
+        if: ${{ github.event_name != 'pull_request' || github.ref_type == 'tag' }}
         with:
           name: ${{ matrix.spoofed && 'manager-spoofed' || 'manager' }}
           path: manager/app/build/outputs/apk/release/*.apk
 
       - name: Upload mappings
         uses: actions/upload-artifact@v7
-        if: ${{ ( github.event_name != 'pull_request' && (github.ref == 'refs/heads/dev' )) || github.ref_type == 'tag' }}
+        if: ${{ github.event_name != 'pull_request' || github.ref_type == 'tag' }}
         with:
           name: ${{ matrix.spoofed && 'mappings-spoofed' || 'mappings' }}
           path: "manager/app/build/outputs/mapping/release/"
@@ -175,7 +177,7 @@ jobs:
           COMMIT_MESSAGE: ${{ github.event.head_commit.message }}
           COMMIT_URL: ${{ github.event.head_commit.url }}
           RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
-          TITLE: ${{ matrix.spoofed && 'Dev Manager Build (Spoofed)' || 'Dev Manager Build (Normal)' }}
+          TITLE: ${{ matrix.spoofed && 'MIUIX Manager Build (Spoofed)' || 'MIUIX Manager Build (Normal)' }}
           BRANCH: ${{ github.ref_name }}
         run: |
           if [ ! -z "${{ secrets.BOT_TOKEN }}" ]; then
