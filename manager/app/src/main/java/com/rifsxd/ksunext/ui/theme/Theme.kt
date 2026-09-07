@@ -6,7 +6,6 @@ import androidx.activity.SystemBarStyle
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Typography
 import androidx.compose.material3.darkColorScheme
 import androidx.compose.material3.dynamicDarkColorScheme
 import androidx.compose.material3.dynamicLightColorScheme
@@ -45,10 +44,9 @@ fun Color.blend(other: Color, ratio: Float): Color {
 }
 
 /**
- * MIUIX is the visual source of truth for the manager. MaterialTheme is kept
- * bridged underneath it because the existing KernelSU Next screens still use
- * a number of Material3 components. This lets us port screens incrementally
- * without touching root/kernel/userspace behavior.
+ * MIUIX drives the visual identity while MaterialTheme remains bridged for
+ * existing KernelSU Next screens. Root, native, userspace and kernel logic are
+ * deliberately not changed by this layer.
  */
 @Composable
 fun KernelSUTheme(
@@ -100,12 +98,11 @@ fun KernelSUTheme(
 
     SystemBars(darkMode = darkTheme)
 
-    MiuixTheme(
-        controller = controller,
-    ) {
+    MiuixTheme(controller = controller) {
         MaterialTheme(
             colorScheme = materialScheme,
             typography = Typography,
+            shapes = HyperShapes,
         ) {
             CompositionLocalProvider(
                 LocalContentColor provides MiuixTheme.colorScheme.onBackground,
