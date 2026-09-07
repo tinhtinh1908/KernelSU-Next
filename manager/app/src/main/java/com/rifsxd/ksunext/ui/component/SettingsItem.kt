@@ -3,7 +3,13 @@ package com.rifsxd.ksunext.ui.component
 import androidx.compose.foundation.LocalIndication
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.selection.toggleable
-import androidx.compose.material3.*
+import androidx.compose.material3.Icon
+import androidx.compose.material3.ListItem
+import androidx.compose.material3.ListItemColors
+import androidx.compose.material3.ListItemDefaults
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.RadioButton
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
@@ -11,11 +17,9 @@ import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.graphics.Color
-import androidx.compose.material3.ListItemDefaults
-import androidx.compose.material3.ListItemColors
 import com.dergoogler.mmrl.ui.component.LabelItem
 import com.dergoogler.mmrl.ui.component.text.TextRow
+import top.yukonga.miuix.kmp.basic.Switch as MiuixSwitch
 
 @Composable
 fun SwitchItem(
@@ -30,64 +34,57 @@ fun SwitchItem(
     onCheckedChange: (Boolean) -> Unit,
 ) {
     val interactionSource = remember { MutableInteractionSource() }
-    val switchInteractionSource = remember { MutableInteractionSource() }
-    val stateAlpha = remember(checked, enabled) { Modifier.alpha(if (enabled) 1f else 0.5f) }
+    val stateAlpha = if (enabled) Modifier else Modifier.alpha(0.5f)
 
     ListItem(
-        modifier = modifier.then(Modifier
-            .toggleable(
-                value = checked,
-                interactionSource = interactionSource,
-                role = Role.Switch,
-                enabled = enabled,
-                indication = LocalIndication.current,
-                onValueChange = onCheckedChange
-            )),
+        modifier = modifier.toggleable(
+            value = checked,
+            interactionSource = interactionSource,
+            role = Role.Switch,
+            enabled = enabled,
+            indication = LocalIndication.current,
+            onValueChange = onCheckedChange,
+        ),
         colors = colors,
         headlineContent = {
             TextRow(
                 leadingContent = if (beta) {
-                    {
-                        LabelItem(
-                            modifier = Modifier.then(stateAlpha),
-                            text = "Beta"
-                        )
-                    }
+                    { LabelItem(modifier = stateAlpha, text = "Beta") }
                 } else null
             ) {
                 Text(
-                    modifier = Modifier.then(stateAlpha),
+                    modifier = stateAlpha,
                     text = title,
                     style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.SemiBold
+                    fontWeight = FontWeight.Medium,
                 )
             }
         },
         leadingContent = icon?.let {
             {
                 Icon(
-                    modifier = Modifier.then(stateAlpha),
+                    modifier = stateAlpha,
                     imageVector = icon,
-                    contentDescription = title
+                    contentDescription = title,
                 )
             }
         },
         trailingContent = {
-            Switch(
+            MiuixSwitch(
                 checked = checked,
                 enabled = enabled,
                 onCheckedChange = onCheckedChange,
-                interactionSource = switchInteractionSource
             )
         },
-        supportingContent = {
-            if (summary != null) {
+        supportingContent = summary?.let {
+            {
                 Text(
-                    modifier = Modifier.then(stateAlpha),
-                    text = summary
+                    modifier = stateAlpha,
+                    text = it,
+                    style = MaterialTheme.typography.bodyMedium,
                 )
             }
-        }
+        },
     )
 }
 
@@ -98,11 +95,14 @@ fun RadioItem(
     onClick: () -> Unit,
 ) {
     ListItem(
-        headlineContent = {
-            Text(title)
-        },
+        modifier = Modifier.toggleable(
+            value = selected,
+            role = Role.RadioButton,
+            onValueChange = { onClick() },
+        ),
+        headlineContent = { Text(title) },
         leadingContent = {
-            RadioButton(selected = selected, onClick = onClick)
-        }
+            RadioButton(selected = selected, onClick = null)
+        },
     )
 }

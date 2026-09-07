@@ -2,6 +2,7 @@
 
 import com.android.build.gradle.internal.api.BaseVariantOutputImpl
 import com.android.build.gradle.tasks.PackageAndroidArtifact
+import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
 plugins {
     alias(libs.plugins.agp.app)
@@ -22,6 +23,12 @@ apksign {
     keyPasswordProperty = "KEY_PASSWORD"
 }
 
+kotlin {
+    compilerOptions {
+        jvmTarget.set(JvmTarget.JVM_21)
+    }
+}
+
 android {
     namespace = "com.rifsxd.ksunext"
 
@@ -40,21 +47,13 @@ android {
         prefab = true
     }
 
-    kotlinOptions {
-        jvmTarget = "21"
-    }
-
     packaging {
         jniLibs {
             useLegacyPackaging = true
         }
         resources {
-            // https://stackoverflow.com/a/58956288
-            // It will break Layout Inspector, but it's unused for release build.
             excludes += "META-INF/*.version"
-            // https://github.com/Kotlin/kotlinx.coroutines?tab=readme-ov-file#avoiding-including-the-debug-infrastructure-in-the-resulting-apk
             excludes += "DebugProbesKt.bin"
-            // https://issueantenna.com/repo/kotlin/kotlinx.coroutines/issues/3158
             excludes += "kotlin-tooling-metadata.json"
         }
     }
@@ -77,7 +76,6 @@ android {
         }
     }
 
-    // https://stackoverflow.com/a/77745844
     tasks.withType<PackageAndroidArtifact> {
         doFirst { appMetadata.asFile.orNull?.writeText("") }
     }
@@ -136,11 +134,8 @@ dependencies {
     implementation(libs.com.github.topjohnwu.libsu.io)
 
     implementation(libs.dev.rikka.rikkax.parcelablelist)
-
     implementation(libs.io.coil.kt.coil.compose)
-
     implementation(libs.kotlinx.coroutines.core)
-
     implementation(libs.me.zhanghai.android.appiconloader.coil)
 
     implementation(libs.sheet.compose.dialogs.core)
@@ -149,8 +144,10 @@ dependencies {
 
     implementation(libs.markdown)
     implementation(libs.androidx.webkit)
-
     implementation(libs.lsposed.cxx)
-
     implementation(libs.mmrl.ui)
+
+    implementation(libs.miuix.ui)
+    implementation(libs.miuix.icons)
+    implementation(libs.miuix.blur)
 }

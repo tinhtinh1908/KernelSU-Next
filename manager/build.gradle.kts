@@ -1,7 +1,6 @@
 import com.android.build.api.dsl.ApplicationDefaultConfig
 import com.android.build.api.dsl.CommonExtension
 import com.android.build.gradle.api.AndroidBasePlugin
-import java.io.ByteArrayOutputStream
 
 plugins {
     alias(libs.plugins.agp.app) apply false
@@ -29,8 +28,8 @@ cmaker {
 
 val androidMinSdkVersion = 26
 val androidTargetSdkVersion = 36
-val androidCompileSdkVersion = 36
-val androidBuildToolsVersion = "36.1.0"
+val androidCompileSdkVersion = 37
+val androidBuildToolsVersion = "37.0.0"
 val androidCompileNdkVersion by extra(libs.versions.ndk.get())
 val androidSourceCompatibility = JavaVersion.VERSION_21
 val androidTargetCompatibility = JavaVersion.VERSION_21
@@ -53,14 +52,13 @@ fun getVersionCode(): Int {
     return major * 30000 + commitCount
 }
 
-fun getVersionName(): String {
-    return getGitDescribe()
-}
+fun getVersionName(): String = getGitDescribe()
 
 subprojects {
     plugins.withType(AndroidBasePlugin::class.java) {
         extensions.configure(CommonExtension::class.java) {
             compileSdk = androidCompileSdkVersion
+            buildToolsVersion = androidBuildToolsVersion
             ndkVersion = androidCompileNdkVersion
 
             defaultConfig {

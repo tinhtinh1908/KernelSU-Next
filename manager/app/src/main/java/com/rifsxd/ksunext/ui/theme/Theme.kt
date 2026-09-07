@@ -5,12 +5,21 @@ import androidx.activity.ComponentActivity
 import androidx.activity.SystemBarStyle
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.isSystemInDarkTheme
-import androidx.compose.material3.*
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.darkColorScheme
+import androidx.compose.material3.dynamicDarkColorScheme
+import androidx.compose.material3.dynamicLightColorScheme
+import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.SideEffect
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalContext
+import top.yukonga.miuix.kmp.theme.ColorSchemeMode
+import top.yukonga.miuix.kmp.theme.LocalContentColor
+import top.yukonga.miuix.kmp.theme.MiuixTheme
+import top.yukonga.miuix.kmp.theme.ThemeController
 
 private val DarkColorScheme = darkColorScheme(
     primary = PRIMARY,
@@ -34,17 +43,22 @@ fun Color.blend(other: Color, ratio: Float): Color {
     )
 }
 
+/**
+ * MIUIX drives the visual identity while MaterialTheme remains bridged for
+ * existing KernelSU Next screens. Root, native, userspace and kernel logic are
+ * deliberately not changed by this layer.
+ */
 @Composable
 fun KernelSUTheme(
     darkTheme: Boolean = isSystemInDarkTheme(),
-    // Dynamic color is available on Android 12+
     dynamicColor: Boolean = true,
     amoledMode: Boolean = false,
     content: @Composable () -> Unit
 ) {
-    val colorScheme = when {
+    val context = LocalContext.current
+
+    val materialScheme = when {
         amoledMode && darkTheme && dynamicColor && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S -> {
-            val context = LocalContext.current
             val dynamicScheme = dynamicDarkColorScheme(context)
             dynamicScheme.copy(
                 background = AMOLED_BLACK,
@@ -58,7 +72,6 @@ fun KernelSUTheme(
             )
         }
         dynamicColor && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S -> {
-            val context = LocalContext.current
             if (darkTheme) dynamicDarkColorScheme(context) else dynamicLightColorScheme(context)
         }
         amoledMode && darkTheme -> {
@@ -77,25 +90,36 @@ fun KernelSUTheme(
         else -> LightColorScheme
     }
 
-    SystemBarStyle(
-        darkMode = darkTheme
+    val controller = ThemeController(
+        if (darkTheme) ColorSchemeMode.MonetDark else ColorSchemeMode.MonetLight,
+        keyColor = materialScheme.primary,
+        isDark = darkTheme,
     )
 
-    MaterialTheme(
-        colorScheme = colorScheme,
-        typography = Typography,
-        content = content
-    )
+    SystemBars(darkMode = darkTheme)
+
+    MiuixTheme(controller = controller) {
+        MaterialTheme(
+            colorScheme = materialScheme,
+            typography = Typography,
+            shapes = HyperShapes,
+        ) {
+            CompositionLocalProvider(
+                LocalContentColor provides MiuixTheme.colorScheme.onBackground,
+                content = content,
+            )
+        }
+    }
 }
 
 @Composable
-private fun SystemBarStyle(
+private fun SystemBars(
     darkMode: Boolean,
     statusBarScrim: Color = Color.Transparent,
     navigationBarScrim: Color = Color.Transparent,
 ) {
     val context = LocalContext.current
-    val activity = context as ComponentActivity
+    val activity = context as? ComponentActivity ?: return
 
     SideEffect {
         activity.enableEdgeToEdge(
@@ -103,16 +127,15 @@ private fun SystemBarStyle(
                 statusBarScrim.toArgb(),
                 statusBarScrim.toArgb(),
             ) { darkMode },
-            navigationBarStyle = when {
-                darkMode -> SystemBarStyle.dark(
-                    navigationBarScrim.toArgb()
-                )
-
-                else -> SystemBarStyle.light(
+            navigationBarStyle = if (darkMode) {
+                SystemBarStyle.dark(navigationBarScrim.toArgb())
+            } else {
+                SystemBarStyle.light(
                     navigationBarScrim.toArgb(),
                     navigationBarScrim.toArgb(),
                 )
             }
         )
+        activity.window.isNavigationBarContrastEnforced = false
     }
 }
