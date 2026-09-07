@@ -3,14 +3,12 @@ package com.rifsxd.ksunext.ui.component
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.scale
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -29,7 +27,7 @@ import com.rifsxd.ksunext.R
 fun AboutCard() {
     ElevatedCard(
         modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(8.dp)
+        shape = MaterialTheme.shapes.large,
     ) {
         Row(
             modifier = Modifier
@@ -43,45 +41,40 @@ fun AboutCard() {
 
 @Composable
 fun AboutDialog(dismiss: () -> Unit) {
-    Dialog(
-        onDismissRequest = { dismiss() }
-    ) {
+    Dialog(onDismissRequest = dismiss) {
         AboutCard()
     }
 }
 
 @Composable
 private fun AboutCardContent() {
-    Column(
-        modifier = Modifier.fillMaxWidth()
-    ) {
+    Column(modifier = Modifier.fillMaxWidth()) {
         Row {
             Surface(
-                modifier = Modifier.size(40.dp),
+                modifier = Modifier.size(44.dp),
                 color = colorResource(id = R.color.ic_launcher_background),
-                shape = CircleShape
+                shape = CircleShape,
             ) {
                 Image(
-                    painter = painterResource(id = R.mipmap.ic_launcher_foreground),
-                    contentDescription = "icon",
-                    modifier = Modifier.scale(1.5f)
+                    painter = painterResource(id = R.drawable.ic_launcher_hyper),
+                    contentDescription = "KernelSU Next",
+                    modifier = Modifier.padding(6.dp),
                 )
             }
 
-            Spacer(modifier = Modifier.width(12.dp))
+            Spacer(modifier = Modifier.width(14.dp))
 
             Column {
-
                 Text(
                     text = stringResource(id = R.string.app_name),
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.SemiBold,
-                    fontSize = 18.sp
+                    fontSize = 18.sp,
                 )
                 Text(
                     BuildConfig.VERSION_NAME,
                     style = MaterialTheme.typography.bodySmall,
-                    fontSize = 14.sp
+                    fontSize = 14.sp,
                 )
 
                 Spacer(modifier = Modifier.height(8.dp))
@@ -94,20 +87,18 @@ private fun AboutCardContent() {
                     linkStyles = TextLinkStyles(
                         style = SpanStyle(
                             color = MaterialTheme.colorScheme.primary,
-                            textDecoration = TextDecoration.Underline
+                            textDecoration = TextDecoration.Underline,
                         ),
                         pressedStyle = SpanStyle(
                             color = MaterialTheme.colorScheme.primary,
                             background = MaterialTheme.colorScheme.secondaryContainer,
-                            textDecoration = TextDecoration.Underline
-                        )
-                    )
+                            textDecoration = TextDecoration.Underline,
+                        ),
+                    ),
                 )
                 Text(
                     text = annotatedString,
-                    style = TextStyle(
-                        fontSize = 14.sp
-                    )
+                    style = TextStyle(fontSize = 14.sp),
                 )
             }
         }
