@@ -1,7 +1,5 @@
 @file:Suppress("UnstableApiUsage")
 
-import com.android.build.gradle.internal.api.BaseVariantOutputImpl
-import com.android.build.gradle.tasks.PackageAndroidArtifact
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
 plugins {
@@ -13,8 +11,16 @@ plugins {
     id("kotlin-parcelize")
 }
 
-val managerVersionCode: Int by rootProject.extra
-val managerVersionName: String by rootProject.extra
+val androidCompileSdkVersion = rootProject.extra["androidCompileSdkVersion"] as Int
+val androidCompileSdkVersionMinor = rootProject.extra["androidCompileSdkVersionMinor"] as Int
+val androidCompileNdkVersion = rootProject.extra["androidCompileNdkVersion"] as String
+val androidBuildToolsVersion = rootProject.extra["androidBuildToolsVersion"] as String
+val androidMinSdkVersion = rootProject.extra["androidMinSdkVersion"] as Int
+val androidTargetSdkVersion = rootProject.extra["androidTargetSdkVersion"] as Int
+val androidSourceCompatibility = rootProject.extra["androidSourceCompatibility"] as JavaVersion
+val androidTargetCompatibility = rootProject.extra["androidTargetCompatibility"] as JavaVersion
+val managerVersionCode = rootProject.extra["managerVersionCode"] as Int
+val managerVersionName = rootProject.extra["managerVersionName"] as String
 
 apksign {
     storeFileProperty = "KEYSTORE_FILE"
@@ -32,10 +38,30 @@ kotlin {
 android {
     namespace = "com.rifsxd.ksunext"
 
+    compileSdk {
+        version = release(androidCompileSdkVersion) {
+            minorApiLevel = androidCompileSdkVersionMinor
+        }
+    }
+    buildToolsVersion = androidBuildToolsVersion
+    ndkVersion = androidCompileNdkVersion
+
+    defaultConfig {
+        minSdk = androidMinSdkVersion
+        targetSdk = androidTargetSdkVersion
+        versionCode = managerVersionCode
+        versionName = managerVersionName
+
+        ndk {
+            abiFilters += listOf("arm64-v8a", "x86_64")
+        }
+    }
+
     buildTypes {
         release {
             isMinifyEnabled = true
             isShrinkResources = true
+            vcsInfo.include = false
             proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
         }
     }
@@ -64,22 +90,6 @@ android {
         }
     }
 
-    applicationVariants.all {
-        outputs.forEach {
-            val output = it as BaseVariantOutputImpl
-            output.outputFileName = "KernelSU_Next_${managerVersionName}_${managerVersionCode}-$name.apk"
-        }
-        kotlin.sourceSets {
-            getByName(name) {
-                kotlin.srcDir("build/generated/ksp/$name/kotlin")
-            }
-        }
-    }
-
-    tasks.withType<PackageAndroidArtifact> {
-        doFirst { appMetadata.asFile.orNull?.writeText("") }
-    }
-
     dependenciesInfo {
         includeInApk = false
         includeInBundle = false
@@ -88,6 +98,28 @@ android {
     androidResources {
         generateLocaleConfig = true
     }
+
+    lint {
+        abortOnError = true
+        checkReleaseBuilds = false
+    }
+
+    compileOptions {
+        sourceCompatibility = androidSourceCompatibility
+        targetCompatibility = androidTargetCompatibility
+    }
+}
+
+androidComponents {
+    onVariants(selector().withBuildType("release")) {
+        it.packaging.resources.excludes.addAll(
+            listOf("META-INF/*.version", "DebugProbesKt.bin", "kotlin-tooling-metadata.json")
+        )
+    }
+}
+
+base {
+    archivesName.set("KernelSU_Next_${managerVersionName}_${managerVersionCode}")
 }
 
 ksp {
@@ -147,7 +179,6 @@ dependencies {
     implementation(libs.lsposed.cxx)
     implementation(libs.mmrl.ui)
 
-    // MIUIX visual layer. KernelSU Next backend/kernel APIs stay untouched.
     implementation(libs.miuix.ui)
     implementation(libs.miuix.icons)
     implementation(libs.miuix.blur)
