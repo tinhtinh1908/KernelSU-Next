@@ -1,20 +1,40 @@
+import com.android.build.api.dsl.ApplicationDefaultConfig
+import com.android.build.api.dsl.CommonExtension
+import com.android.build.gradle.api.AndroidBasePlugin
+
 plugins {
     alias(libs.plugins.agp.app) apply false
     alias(libs.plugins.agp.lib) apply false
     alias(libs.plugins.kotlin) apply false
     alias(libs.plugins.compose.compiler) apply false
+    alias(libs.plugins.lsplugin.cmaker)
 }
 
-extra["androidMinSdkVersion"] = 26
-extra["androidTargetSdkVersion"] = 36
-extra["androidCompileSdkVersion"] = 37
-extra["androidCompileSdkVersionMinor"] = 0
-extra["androidBuildToolsVersion"] = "37.0.0"
-extra["androidCompileNdkVersion"] = libs.versions.ndk.get()
-extra["androidSourceCompatibility"] = JavaVersion.VERSION_21
-extra["androidTargetCompatibility"] = JavaVersion.VERSION_21
-extra["managerVersionCode"] = getVersionCode()
-extra["managerVersionName"] = getVersionName()
+cmaker {
+    default {
+        arguments.addAll(
+            arrayOf(
+                "-DANDROID_STL=none",
+            )
+        )
+        abiFilters("arm64-v8a", "x86_64")
+    }
+    buildTypes {
+        if (it.name == "release") {
+            arguments += "-DDEBUG_SYMBOLS_PATH=${layout.buildDirectory.asFile.get().absolutePath}/symbols"
+        }
+    }
+}
+
+val androidMinSdkVersion = 26
+val androidTargetSdkVersion = 36
+val androidCompileSdkVersion = 37
+val androidBuildToolsVersion = "37.0.0"
+val androidCompileNdkVersion by extra(libs.versions.ndk.get())
+val androidSourceCompatibility = JavaVersion.VERSION_21
+val androidTargetCompatibility = JavaVersion.VERSION_21
+val managerVersionCode by extra(getVersionCode())
+val managerVersionName by extra(getVersionName())
 
 fun getGitCommitCount(): Int {
     val process = Runtime.getRuntime().exec(arrayOf("git", "rev-list", "--count", "HEAD"))
@@ -26,6 +46,42 @@ fun getGitDescribe(): String {
     return process.inputStream.bufferedReader().use { it.readText().trim() }
 }
 
-fun getVersionCode(): Int = 30000 + getGitCommitCount()
+fun getVersionCode(): Int {
+    val commitCount = getGitCommitCount()
+    val major = 1
+    return major * 30000 + commitCount
+}
 
 fun getVersionName(): String = getGitDescribe()
+
+subprojects {
+    plugins.withType(AndroidBasePlugin::class.java) {
+        extensions.configure(CommonExtension::class.java) {
+            compileSdk = androidCompileSdkVersion
+            buildToolsVersion = androidBuildToolsVersion
+            ndkVersion = androidCompileNdkVersion
+
+            defaultConfig {
+                minSdk = androidMinSdkVersion
+                if (this is ApplicationDefaultConfig) {
+                    targetSdk = androidTargetSdkVersion
+                    versionCode = managerVersionCode
+                    versionName = managerVersionName
+                }
+                ndk {
+                    abiFilters += listOf("arm64-v8a", "x86_64")
+                }
+            }
+
+            lint {
+                abortOnError = true
+                checkReleaseBuilds = false
+            }
+
+            compileOptions {
+                sourceCompatibility = androidSourceCompatibility
+                targetCompatibility = androidTargetCompatibility
+            }
+        }
+    }
+}
