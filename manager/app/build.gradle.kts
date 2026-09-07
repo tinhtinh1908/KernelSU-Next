@@ -52,6 +52,12 @@ android {
         versionCode = managerVersionCode
         versionName = managerVersionName
 
+        externalNativeBuild {
+            cmake {
+                arguments += "-DANDROID_STL=none"
+            }
+        }
+
         ndk {
             abiFilters += listOf("arm64-v8a", "x86_64")
         }
@@ -63,6 +69,11 @@ android {
             isShrinkResources = true
             vcsInfo.include = false
             proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
+            externalNativeBuild {
+                cmake {
+                    arguments += "-DDEBUG_SYMBOLS_PATH=${layout.buildDirectory.get().asFile.absolutePath}/symbols"
+                }
+            }
         }
     }
 
